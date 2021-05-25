@@ -1,55 +1,50 @@
 package cinema;
 import java.util.Scanner;
 
-        //int countTickets = 0;
-        //countTickets++;
-
 public class Cinema {
+
+    private static final char NOT_EMPTY_SEAT = 'B';
+    private static final char EMPTY_SEAT = 'S';
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the number of rows:");
         int rows = scanner.nextInt();
 
         System.out.println("Enter the number of seats in each row:");
-        int colums = scanner.nextInt();
+        int columns = scanner.nextInt();
 
-        char[][] arr = prepareCinema(rows, colums);
-        promtTheMenu(scanner, rows, colums, arr);
-
+        char[][] arr = prepareCinema(rows, columns);
+        showMenu(arr, scanner);
     }
 
-    public static void promtTheMenu (Scanner scanner, int rows, int colums, char[][] arr) {
+    private static void showMenu(char[][] arr, Scanner scanner) {
+
         System.out.println();
-        System.out.println("1. Show the seats\n" + "2. Buy a ticket\n" + "3. Statistics\n" + "0. Exit\n");
+        System.out.println("1. Show the seats");
+        System.out.println("2. Buy a ticket");
+        System.out.println("3. Statistics");
+        System.out.println("0. Exit");
 
         int menu = scanner.nextInt();
-        int countTickets = 0;
 
         switch (menu) {
             case 1:
-                prepareCinema(rows, colums);
-                drawCinema(arr);
-                promtTheMenu(scanner, rows, colums, arr);
+                drawCinema(arr, scanner);
+                break;
             case 2:
-                chooseSeat(arr, rows, colums);
-                promtTheMenu(scanner, rows, colums, arr);
+                promptInput(arr, scanner);
+                break;
             case 3:
-                showStatistics(arr, rows, colums, ticketPrice);
-                promtTheMenu(scanner, rows, colums, arr);
-
+                showStatistics(arr,scanner);
+                break;
             case 0:
                 break;
-
-            default:
-                System.out.println("Wrong input!");
-                promtTheMenu(scanner, rows, colums, arr);
-
-
         }
     }
 
-    public static char[][] prepareCinema(int rows, int colums) {
-        char[][] arr = new char[rows + 1][colums + 1];
+    private static char[][] prepareCinema(int rows, int columns) {
+        char[][] arr = new char[rows + 1][columns + 1];
 
         // draw columns index
         for (int i = 1; i < arr[0].length; i++) {
@@ -60,16 +55,18 @@ public class Cinema {
         for (int i = 1; i < arr.length; i++) {
             arr[i][0] = (char) (i + '0');
         }
+
         // draw seats
         for (int i = 1; i < arr.length; i++) {
             for (int j = 1; j < arr[0].length; j++) {
-                arr[i][j] = 'S';
+                arr[i][j] = EMPTY_SEAT;
             }
         }
+
         return arr;
     }
 
-    public static void drawCinema(char[][] arr) {
+    private static void drawCinema(char[][] arr, Scanner scanner) {
         System.out.println("Cinema:");
         for (int i = 0; i < arr.length; i++) {
             if (i == 0) {
@@ -80,100 +77,172 @@ public class Cinema {
             }
             System.out.println();
         }
+        showMenu(arr, scanner);
     }
 
-    public static char[][] chooseSeat(char[][] arr, int rows, int colums) {
-        Scanner scanner = new Scanner(System.in);
+    private static void promptInput(char[][] arr, Scanner scanner) {
         System.out.println("Enter a row number:");
         int rowNum = scanner.nextInt();
-
-        if (rowNum > rows || rowNum < 1) {
-            System.out.println("Wrong input!");
-            System.out.println("Enter a row number:");
-        }
-
         System.out.println("Enter a seat number in that row:");
         int seatNum = scanner.nextInt();
 
-        if (seatNum > colums || seatNum < 1) {
-            System.out.println("Wrong input!");
-            System.out.println("Enter a row number:");
-        }
-
-        arr[rowNum][seatNum] = 'B';
-        printThePrice(rows, colums, rowNum);
-
-        return arr;
+        checkAllInput(arr, rowNum,seatNum,scanner);
     }
 
-    public static void printThePrice(int rows, int colums, int rowNum) {
-        int allSeats = rows * colums;
-        int frontHalf;
-        int backHalf;
-        int income;
-        int ticketPrice;
+    private static void checkAllInput(char[][] arr, int rowNum, int seatNum, Scanner scanner) {
+        try {
+            checkRow(arr, rowNum, scanner);
+            checkSeat(arr, seatNum, scanner);
+            orderSeat(scanner, arr, rowNum, seatNum);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            System.out.println("Wrong input!");
+            promptInput(arr, scanner);
+        }
+    }
+
+    private static void checkRow(char[][] arr, int rowNum, Scanner scanner)
+            throws ArrayIndexOutOfBoundsException {
+        try {
+            if (rowNum == 0) {
+                System.out.println("Wrong input!");
+                promptInput(arr, scanner);
+            }
+            int ch = (arr[rowNum][0]);
+        } catch(ArrayIndexOutOfBoundsException ex) {
+            throw ex;
+        }
+    }
+
+    private static void checkSeat(char[][] arr, int seatNum, Scanner scanner)
+            throws ArrayIndexOutOfBoundsException {
+        try {
+            if (seatNum == 0) {
+                System.out.println("Wrong input!");
+                promptInput(arr, scanner);
+            }
+            int ch = arr[0][seatNum];
+        } catch (ArrayIndexOutOfBoundsException ex) {
+            throw ex;
+        }
+    }
+
+    private static void orderSeat(Scanner scanner, char[][] arr, int rowNum, int seatNum) {
+        if (arr[rowNum][seatNum] == NOT_EMPTY_SEAT) {
+            System.out.println("That ticket has already been purchased!");
+            promptInput(arr, scanner);
+            return;
+        }
+        arr[rowNum][seatNum] = NOT_EMPTY_SEAT;
+        System.out.println("Ticket price: $" + calculateLargePlaceTicket(arr, rowNum));
+        showMenu(arr, scanner);
+    }
+
+    private static int calculateTicketPrice(char[][] arr, int rowNum) {
+        int ticketPrice = 0;
+        String place = "";
+        int allSeats = (arr.length - 1) * (arr[0].length - 1);
+
+        if (allSeats > 60) {
+            place = "large";
+        } else {
+            place = "small";
+        }
+
+        switch (place) {
+            case "large":
+                ticketPrice = calculateLargePlaceTicket(arr, rowNum);
+                break;
+            case "small":
+                ticketPrice = 10;
+                break;
+        }
+        return ticketPrice;
+    }
+
+    private static int calculateLargePlaceTicket (char[][] arr, int rowNum) {
+        final int TICKET_ON_FIRST_ROWS = 10;
+        final int TICKET_ON_LAST_ROWS = 8;
+        int allSeats = (arr.length - 1) * (arr[0].length - 1);
+        int frontHalf = 0;
+        int ticketprice = 10;
+
+        if (allSeats > 60) {
+            frontHalf = (arr.length - 1) / 2;
+            if (((arr.length - 1) - rowNum) < frontHalf) {
+                return TICKET_ON_LAST_ROWS;
+            }
+            frontHalf = (arr.length - 1) / 2;
+            if (((arr.length - 1) - rowNum) <= frontHalf) {
+                return TICKET_ON_LAST_ROWS;
+            }
+            return TICKET_ON_FIRST_ROWS;
+        }
+
+        return ticketprice;
+    }
+
+    private static void printIncome(char[][] arr) {
+        int allSeats =(arr.length - 1) * (arr[0].length - 1);
+        int income = 0;
         String place = "";
 
         if (allSeats > 60) {
             place = "large";
+        } else {
+            place = "small";
         }
+
         switch (place) {
             case "large":
-                if (rows % 2 == 0) {
-                    frontHalf = allSeats / 2;
-                    //backHalf = allSeats - frontHalf;
-                    //income = (backHalf * 8) + (frontHalf * 10);
-                    if ((rows - rowNum) <= frontHalf) {
-                        ticketPrice = 8;
-                    } else {
-                        ticketPrice = 10;
-                    }
-                    System.out.println("Ticket price: \n" + "$" + ticketPrice);
-                    break;
-                } else {
-                    frontHalf = rows / 2;
-                    //backHalf = rows - frontHalf; //
-                    //income = (10 * (frontHalf * colums)) + ((8 * backHalf * colums));
-                    if ((rows - rowNum) <= frontHalf) {
-                        ticketPrice = 8;
-                    } else {
-                        ticketPrice = 10;
-                    }
-                    System.out.println("Ticket price: \n" + "$" + ticketPrice);
-                    break;
-                }
-
-            default:
+                income = calculateLargeTotalIncome(arr);
+                break;
+            case "small":
                 income = 10 * allSeats;
-                System.out.println("Ticket price: \n" + "$" + income / allSeats);
                 break;
         }
+        System.out.println("Total income: $" + income);
     }
 
-    public static void showStatistics(char[][] arr, int rows, int colums, int ticketPrice) {
+    private static int calculateLargeTotalIncome(char[][] arr) {
 
+        int allSeats =(arr.length - 1) * (arr[0].length - 1);
+        int income;
+        int frontHalf;
+        int backHalf;
+
+        if ((arr.length - 1) % 2 == 0) {
+            frontHalf = allSeats / 2;
+            backHalf = allSeats - frontHalf;
+            income = (backHalf * 8) + (frontHalf * 10);
+            return income;
+        }
+        frontHalf = (arr.length - 1) / 2;
+        backHalf = (arr.length - 1) - frontHalf;
+        income = (10 * (frontHalf * (arr[0].length - 1))) + ((8 * backHalf * (arr[0].length - 1)));
+        return income;
+    }
+
+    private static void showStatistics(char[][] arr, Scanner scanner) {
         int countTickets = 0;
         int currentIncome = 0;
 
         for (int i = 1; i < arr.length; i++) {
             for (int j = 1; j < arr[0].length; j++) {
-                if (arr[i][j] == 'B') {
+                if (arr[i][j] == NOT_EMPTY_SEAT) {
                     countTickets++;
-                    currentIncome =+ ticketPrice;
+                    currentIncome += calculateTicketPrice(arr, i);
                 }
             }
         }
-        System.out.println("Number of purchased tickets: " + countTickets);
-        double allSeats = rows * colums;
+
+        System.out.printf("Number of purchased tickets: %d%n", countTickets);
+        double allSeats = (arr.length - 1) * (arr[0].length - 1);
         double percentage = (countTickets / allSeats) * 100;
-        System.out.println("Percentage: " + percentage + "%");
-        System.out.println("Current income: $" + currentIncome);
 
-        //System.out.println("Total income: $" 360);
-
-       // 1 The number of purchased tickets;
-       // 2 The number of purchased tickets represented as a percentage. Percentages should be rounded to 2 decimal places;
-       // 3 Current income;
-       // 4 The total income that shows how much money the theatre will get if all the tickets are sold.
+        System.out.printf("Percentage: %.2f%s%n", percentage, "%");
+        System.out.printf("Current income: %s%d%n", "$", currentIncome);
+        printIncome(arr);
+        showMenu(arr, scanner);
     }
+
 }
