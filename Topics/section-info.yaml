@@ -4,3 +4,5 @@ content:
 - Multidimensional array
 - NPE
 - Array exceptions
+- Fields and methods in enum
+- Iterating over arrays

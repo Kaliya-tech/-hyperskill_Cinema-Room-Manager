@@ -3,16 +3,16 @@ import java.util.*;
 class FixingNullPointerException {
 
     public static void main(String[] args) {
-        String str1;
-        String str2 = "123";
+        Scanner scanner = new Scanner(System.in);
+        String string = scanner.nextLine();
+        string = "null".equals(string) ? "null" : string;
 
-        if (str2.equals(str1 = "123")) {
-            str2 = null;
+        /* Do not change code above */
+        if (string == "null") {
+            System.out.println("NPE!");
+        } else {
+            System.out.println(string.toLowerCase());
+
         }
-
-        str1 = str2;
-        str2 = str1;
-
-        System.out.println(str2);
     }
 }

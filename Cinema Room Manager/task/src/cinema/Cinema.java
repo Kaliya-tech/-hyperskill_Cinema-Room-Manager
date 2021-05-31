@@ -7,6 +7,7 @@ public class Cinema {
     private static final char EMPTY_SEAT = 'S';
 
     public static void main(String[] args) {
+
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the number of rows:");
         int rows = scanner.nextInt();
@@ -244,5 +245,4 @@ public class Cinema {
         printIncome(arr);
         showMenu(arr, scanner);
     }
-
 }
